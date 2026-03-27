@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMAP Parameter Exploration Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            color: white;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        select, input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .stats {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .figure-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .figure-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .figure-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+
+        .figure-info {
+            padding: 15px;
+            background: white;
+        }
+
+        .figure-params {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .param-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            font-size: 1.1em;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 UMAP Parameter Exploration</h1>
+            <p>Interactive gallery of dimensionality reduction visualizations</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="sizeFilter">Dataset Size</label>
+                <select id="sizeFilter">
+                    <option value="">All Sizes</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="neighborsFilter">n_neighbors</label>
+                <select id="neighborsFilter">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="distFilter">min_dist</label>
+                <select id="distFilter">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="metricFilter">metric</label>
+                <select id="metricFilter">
+                    <option value="">All</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats">
+            <span id="figureCount"></span>
+        </div>
+
+        <div class="gallery" id="gallery"></div>
+
+        <footer>
+            <p>Generated by UMAP Parameter Exploration Tool</p>
+        </footer>
+    </div>
+
+    <script>
+        const figuresBySize = {"400": [{"filename": "umap-0002-0.00000-cosine.png", "path": "Figures/400/umap-0002-0.00000-cosine.png", "n_neighbors": "0002", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0002-0.00000-euclidean.png", "path": "Figures/400/umap-0002-0.00000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0002-0.00100-cosine.png", "path": "Figures/400/umap-0002-0.00100-cosine.png", "n_neighbors": "0002", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0002-0.00100-euclidean.png", "path": "Figures/400/umap-0002-0.00100-euclidean.png", "n_neighbors": "0002", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0002-0.01000-cosine.png", "path": "Figures/400/umap-0002-0.01000-cosine.png", "n_neighbors": "0002", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0002-0.01000-euclidean.png", "path": "Figures/400/umap-0002-0.01000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0002-0.10000-cosine.png", "path": "Figures/400/umap-0002-0.10000-cosine.png", "n_neighbors": "0002", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0002-0.10000-euclidean.png", "path": "Figures/400/umap-0002-0.10000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0002-0.25000-cosine.png", "path": "Figures/400/umap-0002-0.25000-cosine.png", "n_neighbors": "0002", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0002-0.25000-euclidean.png", "path": "Figures/400/umap-0002-0.25000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0002-0.50000-cosine.png", "path": "Figures/400/umap-0002-0.50000-cosine.png", "n_neighbors": "0002", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0002-0.50000-euclidean.png", "path": "Figures/400/umap-0002-0.50000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0002-0.99000-cosine.png", "path": "Figures/400/umap-0002-0.99000-cosine.png", "n_neighbors": "0002", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0002-0.99000-euclidean.png", "path": "Figures/400/umap-0002-0.99000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0005-0.00000-cosine.png", "path": "Figures/400/umap-0005-0.00000-cosine.png", "n_neighbors": "0005", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0005-0.00000-euclidean.png", "path": "Figures/400/umap-0005-0.00000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0005-0.00100-cosine.png", "path": "Figures/400/umap-0005-0.00100-cosine.png", "n_neighbors": "0005", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0005-0.00100-euclidean.png", "path": "Figures/400/umap-0005-0.00100-euclidean.png", "n_neighbors": "0005", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0005-0.01000-cosine.png", "path": "Figures/400/umap-0005-0.01000-cosine.png", "n_neighbors": "0005", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0005-0.01000-euclidean.png", "path": "Figures/400/umap-0005-0.01000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0005-0.10000-cosine.png", "path": "Figures/400/umap-0005-0.10000-cosine.png", "n_neighbors": "0005", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0005-0.10000-euclidean.png", "path": "Figures/400/umap-0005-0.10000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0005-0.25000-cosine.png", "path": "Figures/400/umap-0005-0.25000-cosine.png", "n_neighbors": "0005", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0005-0.25000-euclidean.png", "path": "Figures/400/umap-0005-0.25000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0005-0.50000-cosine.png", "path": "Figures/400/umap-0005-0.50000-cosine.png", "n_neighbors": "0005", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0005-0.50000-euclidean.png", "path": "Figures/400/umap-0005-0.50000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0005-0.99000-cosine.png", "path": "Figures/400/umap-0005-0.99000-cosine.png", "n_neighbors": "0005", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0005-0.99000-euclidean.png", "path": "Figures/400/umap-0005-0.99000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0010-0.00000-cosine.png", "path": "Figures/400/umap-0010-0.00000-cosine.png", "n_neighbors": "0010", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0010-0.00000-euclidean.png", "path": "Figures/400/umap-0010-0.00000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0010-0.00100-cosine.png", "path": "Figures/400/umap-0010-0.00100-cosine.png", "n_neighbors": "0010", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0010-0.00100-euclidean.png", "path": "Figures/400/umap-0010-0.00100-euclidean.png", "n_neighbors": "0010", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0010-0.01000-cosine.png", "path": "Figures/400/umap-0010-0.01000-cosine.png", "n_neighbors": "0010", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0010-0.01000-euclidean.png", "path": "Figures/400/umap-0010-0.01000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0010-0.10000-cosine.png", "path": "Figures/400/umap-0010-0.10000-cosine.png", "n_neighbors": "0010", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0010-0.10000-euclidean.png", "path": "Figures/400/umap-0010-0.10000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0010-0.25000-cosine.png", "path": "Figures/400/umap-0010-0.25000-cosine.png", "n_neighbors": "0010", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0010-0.25000-euclidean.png", "path": "Figures/400/umap-0010-0.25000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0010-0.50000-cosine.png", "path": "Figures/400/umap-0010-0.50000-cosine.png", "n_neighbors": "0010", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0010-0.50000-euclidean.png", "path": "Figures/400/umap-0010-0.50000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0010-0.99000-cosine.png", "path": "Figures/400/umap-0010-0.99000-cosine.png", "n_neighbors": "0010", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0010-0.99000-euclidean.png", "path": "Figures/400/umap-0010-0.99000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0020-0.00000-cosine.png", "path": "Figures/400/umap-0020-0.00000-cosine.png", "n_neighbors": "0020", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0020-0.00000-euclidean.png", "path": "Figures/400/umap-0020-0.00000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0020-0.00100-cosine.png", "path": "Figures/400/umap-0020-0.00100-cosine.png", "n_neighbors": "0020", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0020-0.00100-euclidean.png", "path": "Figures/400/umap-0020-0.00100-euclidean.png", "n_neighbors": "0020", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0020-0.01000-cosine.png", "path": "Figures/400/umap-0020-0.01000-cosine.png", "n_neighbors": "0020", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0020-0.01000-euclidean.png", "path": "Figures/400/umap-0020-0.01000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0020-0.10000-cosine.png", "path": "Figures/400/umap-0020-0.10000-cosine.png", "n_neighbors": "0020", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0020-0.10000-euclidean.png", "path": "Figures/400/umap-0020-0.10000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0020-0.25000-cosine.png", "path": "Figures/400/umap-0020-0.25000-cosine.png", "n_neighbors": "0020", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0020-0.25000-euclidean.png", "path": "Figures/400/umap-0020-0.25000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0020-0.50000-cosine.png", "path": "Figures/400/umap-0020-0.50000-cosine.png", "n_neighbors": "0020", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0020-0.50000-euclidean.png", "path": "Figures/400/umap-0020-0.50000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0020-0.99000-cosine.png", "path": "Figures/400/umap-0020-0.99000-cosine.png", "n_neighbors": "0020", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0020-0.99000-euclidean.png", "path": "Figures/400/umap-0020-0.99000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0050-0.00000-cosine.png", "path": "Figures/400/umap-0050-0.00000-cosine.png", "n_neighbors": "0050", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0050-0.00000-euclidean.png", "path": "Figures/400/umap-0050-0.00000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0050-0.00100-cosine.png", "path": "Figures/400/umap-0050-0.00100-cosine.png", "n_neighbors": "0050", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0050-0.00100-euclidean.png", "path": "Figures/400/umap-0050-0.00100-euclidean.png", "n_neighbors": "0050", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0050-0.01000-cosine.png", "path": "Figures/400/umap-0050-0.01000-cosine.png", "n_neighbors": "0050", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0050-0.01000-euclidean.png", "path": "Figures/400/umap-0050-0.01000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0050-0.10000-cosine.png", "path": "Figures/400/umap-0050-0.10000-cosine.png", "n_neighbors": "0050", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0050-0.10000-euclidean.png", "path": "Figures/400/umap-0050-0.10000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0050-0.25000-cosine.png", "path": "Figures/400/umap-0050-0.25000-cosine.png", "n_neighbors": "0050", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0050-0.25000-euclidean.png", "path": "Figures/400/umap-0050-0.25000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0050-0.50000-cosine.png", "path": "Figures/400/umap-0050-0.50000-cosine.png", "n_neighbors": "0050", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0050-0.50000-euclidean.png", "path": "Figures/400/umap-0050-0.50000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0050-0.99000-cosine.png", "path": "Figures/400/umap-0050-0.99000-cosine.png", "n_neighbors": "0050", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0050-0.99000-euclidean.png", "path": "Figures/400/umap-0050-0.99000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0100-0.00000-cosine.png", "path": "Figures/400/umap-0100-0.00000-cosine.png", "n_neighbors": "0100", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0100-0.00000-euclidean.png", "path": "Figures/400/umap-0100-0.00000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0100-0.00100-cosine.png", "path": "Figures/400/umap-0100-0.00100-cosine.png", "n_neighbors": "0100", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0100-0.00100-euclidean.png", "path": "Figures/400/umap-0100-0.00100-euclidean.png", "n_neighbors": "0100", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0100-0.01000-cosine.png", "path": "Figures/400/umap-0100-0.01000-cosine.png", "n_neighbors": "0100", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0100-0.01000-euclidean.png", "path": "Figures/400/umap-0100-0.01000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0100-0.10000-cosine.png", "path": "Figures/400/umap-0100-0.10000-cosine.png", "n_neighbors": "0100", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0100-0.10000-euclidean.png", "path": "Figures/400/umap-0100-0.10000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0100-0.25000-cosine.png", "path": "Figures/400/umap-0100-0.25000-cosine.png", "n_neighbors": "0100", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0100-0.25000-euclidean.png", "path": "Figures/400/umap-0100-0.25000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0100-0.50000-cosine.png", "path": "Figures/400/umap-0100-0.50000-cosine.png", "n_neighbors": "0100", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0100-0.50000-euclidean.png", "path": "Figures/400/umap-0100-0.50000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0100-0.99000-cosine.png", "path": "Figures/400/umap-0100-0.99000-cosine.png", "n_neighbors": "0100", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0100-0.99000-euclidean.png", "path": "Figures/400/umap-0100-0.99000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0200-0.00000-cosine.png", "path": "Figures/400/umap-0200-0.00000-cosine.png", "n_neighbors": "0200", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0200-0.00000-euclidean.png", "path": "Figures/400/umap-0200-0.00000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0200-0.00100-cosine.png", "path": "Figures/400/umap-0200-0.00100-cosine.png", "n_neighbors": "0200", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0200-0.00100-euclidean.png", "path": "Figures/400/umap-0200-0.00100-euclidean.png", "n_neighbors": "0200", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0200-0.01000-cosine.png", "path": "Figures/400/umap-0200-0.01000-cosine.png", "n_neighbors": "0200", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0200-0.01000-euclidean.png", "path": "Figures/400/umap-0200-0.01000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0200-0.10000-cosine.png", "path": "Figures/400/umap-0200-0.10000-cosine.png", "n_neighbors": "0200", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0200-0.10000-euclidean.png", "path": "Figures/400/umap-0200-0.10000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0200-0.25000-cosine.png", "path": "Figures/400/umap-0200-0.25000-cosine.png", "n_neighbors": "0200", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0200-0.25000-euclidean.png", "path": "Figures/400/umap-0200-0.25000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0200-0.50000-cosine.png", "path": "Figures/400/umap-0200-0.50000-cosine.png", "n_neighbors": "0200", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0200-0.50000-euclidean.png", "path": "Figures/400/umap-0200-0.50000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0200-0.99000-cosine.png", "path": "Figures/400/umap-0200-0.99000-cosine.png", "n_neighbors": "0200", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0200-0.99000-euclidean.png", "path": "Figures/400/umap-0200-0.99000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.99000", "metric": "euclidean"}], "8000": [{"filename": "umap-0002-0.00000-cosine.png", "path": "Figures/8000/umap-0002-0.00000-cosine.png", "n_neighbors": "0002", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0002-0.00000-euclidean.png", "path": "Figures/8000/umap-0002-0.00000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0002-0.00010-cosine.png", "path": "Figures/8000/umap-0002-0.00010-cosine.png", "n_neighbors": "0002", "min_dist": "0.00010", "metric": "cosine"}, {"filename": "umap-0002-0.00010-euclidean.png", "path": "Figures/8000/umap-0002-0.00010-euclidean.png", "n_neighbors": "0002", "min_dist": "0.00010", "metric": "euclidean"}, {"filename": "umap-0002-0.00100-cosine.png", "path": "Figures/8000/umap-0002-0.00100-cosine.png", "n_neighbors": "0002", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0002-0.00100-euclidean.png", "path": "Figures/8000/umap-0002-0.00100-euclidean.png", "n_neighbors": "0002", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0002-0.01000-cosine.png", "path": "Figures/8000/umap-0002-0.01000-cosine.png", "n_neighbors": "0002", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0002-0.01000-euclidean.png", "path": "Figures/8000/umap-0002-0.01000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0002-0.10000-cosine.png", "path": "Figures/8000/umap-0002-0.10000-cosine.png", "n_neighbors": "0002", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0002-0.10000-euclidean.png", "path": "Figures/8000/umap-0002-0.10000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0002-0.25000-cosine.png", "path": "Figures/8000/umap-0002-0.25000-cosine.png", "n_neighbors": "0002", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0002-0.25000-euclidean.png", "path": "Figures/8000/umap-0002-0.25000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0002-0.50000-cosine.png", "path": "Figures/8000/umap-0002-0.50000-cosine.png", "n_neighbors": "0002", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0002-0.50000-euclidean.png", "path": "Figures/8000/umap-0002-0.50000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0002-0.99000-cosine.png", "path": "Figures/8000/umap-0002-0.99000-cosine.png", "n_neighbors": "0002", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0002-0.99000-euclidean.png", "path": "Figures/8000/umap-0002-0.99000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0005-0.00000-cosine.png", "path": "Figures/8000/umap-0005-0.00000-cosine.png", "n_neighbors": "0005", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0005-0.00000-euclidean.png", "path": "Figures/8000/umap-0005-0.00000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0005-0.00010-cosine.png", "path": "Figures/8000/umap-0005-0.00010-cosine.png", "n_neighbors": "0005", "min_dist": "0.00010", "metric": "cosine"}, {"filename": "umap-0005-0.00010-euclidean.png", "path": "Figures/8000/umap-0005-0.00010-euclidean.png", "n_neighbors": "0005", "min_dist": "0.00010", "metric": "euclidean"}, {"filename": "umap-0005-0.00100-cosine.png", "path": "Figures/8000/umap-0005-0.00100-cosine.png", "n_neighbors": "0005", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0005-0.00100-euclidean.png", "path": "Figures/8000/umap-0005-0.00100-euclidean.png", "n_neighbors": "0005", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0005-0.01000-cosine.png", "path": "Figures/8000/umap-0005-0.01000-cosine.png", "n_neighbors": "0005", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0005-0.01000-euclidean.png", "path": "Figures/8000/umap-0005-0.01000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0005-0.10000-cosine.png", "path": "Figures/8000/umap-0005-0.10000-cosine.png", "n_neighbors": "0005", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0005-0.10000-euclidean.png", "path": "Figures/8000/umap-0005-0.10000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0005-0.25000-cosine.png", "path": "Figures/8000/umap-0005-0.25000-cosine.png", "n_neighbors": "0005", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0005-0.25000-euclidean.png", "path": "Figures/8000/umap-0005-0.25000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0005-0.50000-cosine.png", "path": "Figures/8000/umap-0005-0.50000-cosine.png", "n_neighbors": "0005", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0005-0.50000-euclidean.png", "path": "Figures/8000/umap-0005-0.50000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0005-0.99000-cosine.png", "path": "Figures/8000/umap-0005-0.99000-cosine.png", "n_neighbors": "0005", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0005-0.99000-euclidean.png", "path": "Figures/8000/umap-0005-0.99000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0010-0.00000-cosine.png", "path": "Figures/8000/umap-0010-0.00000-cosine.png", "n_neighbors": "0010", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0010-0.00000-euclidean.png", "path": "Figures/8000/umap-0010-0.00000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0010-0.00010-cosine.png", "path": "Figures/8000/umap-0010-0.00010-cosine.png", "n_neighbors": "0010", "min_dist": "0.00010", "metric": "cosine"}, {"filename": "umap-0010-0.00010-euclidean.png", "path": "Figures/8000/umap-0010-0.00010-euclidean.png", "n_neighbors": "0010", "min_dist": "0.00010", "metric": "euclidean"}, {"filename": "umap-0010-0.00100-cosine.png", "path": "Figures/8000/umap-0010-0.00100-cosine.png", "n_neighbors": "0010", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0010-0.00100-euclidean.png", "path": "Figures/8000/umap-0010-0.00100-euclidean.png", "n_neighbors": "0010", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0010-0.01000-cosine.png", "path": "Figures/8000/umap-0010-0.01000-cosine.png", "n_neighbors": "0010", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0010-0.01000-euclidean.png", "path": "Figures/8000/umap-0010-0.01000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0010-0.10000-cosine.png", "path": "Figures/8000/umap-0010-0.10000-cosine.png", "n_neighbors": "0010", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0010-0.10000-euclidean.png", "path": "Figures/8000/umap-0010-0.10000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0010-0.25000-cosine.png", "path": "Figures/8000/umap-0010-0.25000-cosine.png", "n_neighbors": "0010", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0010-0.25000-euclidean.png", "path": "Figures/8000/umap-0010-0.25000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0010-0.50000-cosine.png", "path": "Figures/8000/umap-0010-0.50000-cosine.png", "n_neighbors": "0010", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0010-0.50000-euclidean.png", "path": "Figures/8000/umap-0010-0.50000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0010-0.99000-cosine.png", "path": "Figures/8000/umap-0010-0.99000-cosine.png", "n_neighbors": "0010", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0010-0.99000-euclidean.png", "path": "Figures/8000/umap-0010-0.99000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0020-0.00000-cosine.png", "path": "Figures/8000/umap-0020-0.00000-cosine.png", "n_neighbors": "0020", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0020-0.00000-euclidean.png", "path": "Figures/8000/umap-0020-0.00000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0020-0.00010-cosine.png", "path": "Figures/8000/umap-0020-0.00010-cosine.png", "n_neighbors": "0020", "min_dist": "0.00010", "metric": "cosine"}, {"filename": "umap-0020-0.00010-euclidean.png", "path": "Figures/8000/umap-0020-0.00010-euclidean.png", "n_neighbors": "0020", "min_dist": "0.00010", "metric": "euclidean"}, {"filename": "umap-0020-0.00100-cosine.png", "path": "Figures/8000/umap-0020-0.00100-cosine.png", "n_neighbors": "0020", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0020-0.00100-euclidean.png", "path": "Figures/8000/umap-0020-0.00100-euclidean.png", "n_neighbors": "0020", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0020-0.01000-cosine.png", "path": "Figures/8000/umap-0020-0.01000-cosine.png", "n_neighbors": "0020", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0020-0.01000-euclidean.png", "path": "Figures/8000/umap-0020-0.01000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0020-0.10000-cosine.png", "path": "Figures/8000/umap-0020-0.10000-cosine.png", "n_neighbors": "0020", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0020-0.10000-euclidean.png", "path": "Figures/8000/umap-0020-0.10000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0020-0.25000-cosine.png", "path": "Figures/8000/umap-0020-0.25000-cosine.png", "n_neighbors": "0020", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0020-0.25000-euclidean.png", "path": "Figures/8000/umap-0020-0.25000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0020-0.50000-cosine.png", "path": "Figures/8000/umap-0020-0.50000-cosine.png", "n_neighbors": "0020", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0020-0.50000-euclidean.png", "path": "Figures/8000/umap-0020-0.50000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0020-0.99000-cosine.png", "path": "Figures/8000/umap-0020-0.99000-cosine.png", "n_neighbors": "0020", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0020-0.99000-euclidean.png", "path": "Figures/8000/umap-0020-0.99000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0050-0.00000-cosine.png", "path": "Figures/8000/umap-0050-0.00000-cosine.png", "n_neighbors": "0050", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0050-0.00000-euclidean.png", "path": "Figures/8000/umap-0050-0.00000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0050-0.00010-cosine.png", "path": "Figures/8000/umap-0050-0.00010-cosine.png", "n_neighbors": "0050", "min_dist": "0.00010", "metric": "cosine"}, {"filename": "umap-0050-0.00010-euclidean.png", "path": "Figures/8000/umap-0050-0.00010-euclidean.png", "n_neighbors": "0050", "min_dist": "0.00010", "metric": "euclidean"}, {"filename": "umap-0050-0.00100-cosine.png", "path": "Figures/8000/umap-0050-0.00100-cosine.png", "n_neighbors": "0050", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0050-0.00100-euclidean.png", "path": "Figures/8000/umap-0050-0.00100-euclidean.png", "n_neighbors": "0050", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0050-0.01000-cosine.png", "path": "Figures/8000/umap-0050-0.01000-cosine.png", "n_neighbors": "0050", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0050-0.01000-euclidean.png", "path": "Figures/8000/umap-0050-0.01000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0050-0.10000-cosine.png", "path": "Figures/8000/umap-0050-0.10000-cosine.png", "n_neighbors": "0050", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0050-0.10000-euclidean.png", "path": "Figures/8000/umap-0050-0.10000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0050-0.25000-cosine.png", "path": "Figures/8000/umap-0050-0.25000-cosine.png", "n_neighbors": "0050", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0050-0.25000-euclidean.png", "path": "Figures/8000/umap-0050-0.25000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0050-0.50000-cosine.png", "path": "Figures/8000/umap-0050-0.50000-cosine.png", "n_neighbors": "0050", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0050-0.50000-euclidean.png", "path": "Figures/8000/umap-0050-0.50000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0050-0.99000-cosine.png", "path": "Figures/8000/umap-0050-0.99000-cosine.png", "n_neighbors": "0050", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0050-0.99000-euclidean.png", "path": "Figures/8000/umap-0050-0.99000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0100-0.00000-cosine.png", "path": "Figures/8000/umap-0100-0.00000-cosine.png", "n_neighbors": "0100", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0100-0.00000-euclidean.png", "path": "Figures/8000/umap-0100-0.00000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0100-0.00010-cosine.png", "path": "Figures/8000/umap-0100-0.00010-cosine.png", "n_neighbors": "0100", "min_dist": "0.00010", "metric": "cosine"}, {"filename": "umap-0100-0.00010-euclidean.png", "path": "Figures/8000/umap-0100-0.00010-euclidean.png", "n_neighbors": "0100", "min_dist": "0.00010", "metric": "euclidean"}, {"filename": "umap-0100-0.00100-cosine.png", "path": "Figures/8000/umap-0100-0.00100-cosine.png", "n_neighbors": "0100", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0100-0.00100-euclidean.png", "path": "Figures/8000/umap-0100-0.00100-euclidean.png", "n_neighbors": "0100", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0100-0.01000-cosine.png", "path": "Figures/8000/umap-0100-0.01000-cosine.png", "n_neighbors": "0100", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0100-0.01000-euclidean.png", "path": "Figures/8000/umap-0100-0.01000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0100-0.10000-cosine.png", "path": "Figures/8000/umap-0100-0.10000-cosine.png", "n_neighbors": "0100", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0100-0.10000-euclidean.png", "path": "Figures/8000/umap-0100-0.10000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0100-0.25000-cosine.png", "path": "Figures/8000/umap-0100-0.25000-cosine.png", "n_neighbors": "0100", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0100-0.25000-euclidean.png", "path": "Figures/8000/umap-0100-0.25000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0100-0.50000-cosine.png", "path": "Figures/8000/umap-0100-0.50000-cosine.png", "n_neighbors": "0100", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0100-0.50000-euclidean.png", "path": "Figures/8000/umap-0100-0.50000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0100-0.99000-cosine.png", "path": "Figures/8000/umap-0100-0.99000-cosine.png", "n_neighbors": "0100", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0100-0.99000-euclidean.png", "path": "Figures/8000/umap-0100-0.99000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0200-0.00000-cosine.png", "path": "Figures/8000/umap-0200-0.00000-cosine.png", "n_neighbors": "0200", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0200-0.00000-euclidean.png", "path": "Figures/8000/umap-0200-0.00000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0200-0.00010-cosine.png", "path": "Figures/8000/umap-0200-0.00010-cosine.png", "n_neighbors": "0200", "min_dist": "0.00010", "metric": "cosine"}, {"filename": "umap-0200-0.00010-euclidean.png", "path": "Figures/8000/umap-0200-0.00010-euclidean.png", "n_neighbors": "0200", "min_dist": "0.00010", "metric": "euclidean"}, {"filename": "umap-0200-0.00100-cosine.png", "path": "Figures/8000/umap-0200-0.00100-cosine.png", "n_neighbors": "0200", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0200-0.00100-euclidean.png", "path": "Figures/8000/umap-0200-0.00100-euclidean.png", "n_neighbors": "0200", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0200-0.01000-cosine.png", "path": "Figures/8000/umap-0200-0.01000-cosine.png", "n_neighbors": "0200", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0200-0.01000-euclidean.png", "path": "Figures/8000/umap-0200-0.01000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0200-0.10000-cosine.png", "path": "Figures/8000/umap-0200-0.10000-cosine.png", "n_neighbors": "0200", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0200-0.10000-euclidean.png", "path": "Figures/8000/umap-0200-0.10000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0200-0.25000-cosine.png", "path": "Figures/8000/umap-0200-0.25000-cosine.png", "n_neighbors": "0200", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0200-0.25000-euclidean.png", "path": "Figures/8000/umap-0200-0.25000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0200-0.50000-cosine.png", "path": "Figures/8000/umap-0200-0.50000-cosine.png", "n_neighbors": "0200", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0200-0.50000-euclidean.png", "path": "Figures/8000/umap-0200-0.50000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0200-0.99000-cosine.png", "path": "Figures/8000/umap-0200-0.99000-cosine.png", "n_neighbors": "0200", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0200-0.99000-euclidean.png", "path": "Figures/8000/umap-0200-0.99000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.99000", "metric": "euclidean"}], "800": [{"filename": "umap-0002-0.00000-cosine.png", "path": "Figures/800/umap-0002-0.00000-cosine.png", "n_neighbors": "0002", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0002-0.00000-euclidean.png", "path": "Figures/800/umap-0002-0.00000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0002-0.00100-cosine.png", "path": "Figures/800/umap-0002-0.00100-cosine.png", "n_neighbors": "0002", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0002-0.00100-euclidean.png", "path": "Figures/800/umap-0002-0.00100-euclidean.png", "n_neighbors": "0002", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0002-0.01000-cosine.png", "path": "Figures/800/umap-0002-0.01000-cosine.png", "n_neighbors": "0002", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0002-0.01000-euclidean.png", "path": "Figures/800/umap-0002-0.01000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0002-0.10000-cosine.png", "path": "Figures/800/umap-0002-0.10000-cosine.png", "n_neighbors": "0002", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0002-0.10000-euclidean.png", "path": "Figures/800/umap-0002-0.10000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0002-0.25000-cosine.png", "path": "Figures/800/umap-0002-0.25000-cosine.png", "n_neighbors": "0002", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0002-0.25000-euclidean.png", "path": "Figures/800/umap-0002-0.25000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0002-0.50000-cosine.png", "path": "Figures/800/umap-0002-0.50000-cosine.png", "n_neighbors": "0002", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0002-0.50000-euclidean.png", "path": "Figures/800/umap-0002-0.50000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0002-0.99000-cosine.png", "path": "Figures/800/umap-0002-0.99000-cosine.png", "n_neighbors": "0002", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0002-0.99000-euclidean.png", "path": "Figures/800/umap-0002-0.99000-euclidean.png", "n_neighbors": "0002", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0005-0.00000-cosine.png", "path": "Figures/800/umap-0005-0.00000-cosine.png", "n_neighbors": "0005", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0005-0.00000-euclidean.png", "path": "Figures/800/umap-0005-0.00000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0005-0.00100-cosine.png", "path": "Figures/800/umap-0005-0.00100-cosine.png", "n_neighbors": "0005", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0005-0.00100-euclidean.png", "path": "Figures/800/umap-0005-0.00100-euclidean.png", "n_neighbors": "0005", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0005-0.01000-cosine.png", "path": "Figures/800/umap-0005-0.01000-cosine.png", "n_neighbors": "0005", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0005-0.01000-euclidean.png", "path": "Figures/800/umap-0005-0.01000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0005-0.10000-cosine.png", "path": "Figures/800/umap-0005-0.10000-cosine.png", "n_neighbors": "0005", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0005-0.10000-euclidean.png", "path": "Figures/800/umap-0005-0.10000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0005-0.25000-cosine.png", "path": "Figures/800/umap-0005-0.25000-cosine.png", "n_neighbors": "0005", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0005-0.25000-euclidean.png", "path": "Figures/800/umap-0005-0.25000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0005-0.50000-cosine.png", "path": "Figures/800/umap-0005-0.50000-cosine.png", "n_neighbors": "0005", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0005-0.50000-euclidean.png", "path": "Figures/800/umap-0005-0.50000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0005-0.99000-cosine.png", "path": "Figures/800/umap-0005-0.99000-cosine.png", "n_neighbors": "0005", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0005-0.99000-euclidean.png", "path": "Figures/800/umap-0005-0.99000-euclidean.png", "n_neighbors": "0005", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0010-0.00000-cosine.png", "path": "Figures/800/umap-0010-0.00000-cosine.png", "n_neighbors": "0010", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0010-0.00000-euclidean.png", "path": "Figures/800/umap-0010-0.00000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0010-0.00100-cosine.png", "path": "Figures/800/umap-0010-0.00100-cosine.png", "n_neighbors": "0010", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0010-0.00100-euclidean.png", "path": "Figures/800/umap-0010-0.00100-euclidean.png", "n_neighbors": "0010", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0010-0.01000-cosine.png", "path": "Figures/800/umap-0010-0.01000-cosine.png", "n_neighbors": "0010", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0010-0.01000-euclidean.png", "path": "Figures/800/umap-0010-0.01000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0010-0.10000-cosine.png", "path": "Figures/800/umap-0010-0.10000-cosine.png", "n_neighbors": "0010", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0010-0.10000-euclidean.png", "path": "Figures/800/umap-0010-0.10000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0010-0.25000-cosine.png", "path": "Figures/800/umap-0010-0.25000-cosine.png", "n_neighbors": "0010", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0010-0.25000-euclidean.png", "path": "Figures/800/umap-0010-0.25000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0010-0.50000-cosine.png", "path": "Figures/800/umap-0010-0.50000-cosine.png", "n_neighbors": "0010", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0010-0.50000-euclidean.png", "path": "Figures/800/umap-0010-0.50000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0010-0.99000-cosine.png", "path": "Figures/800/umap-0010-0.99000-cosine.png", "n_neighbors": "0010", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0010-0.99000-euclidean.png", "path": "Figures/800/umap-0010-0.99000-euclidean.png", "n_neighbors": "0010", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0020-0.00000-cosine.png", "path": "Figures/800/umap-0020-0.00000-cosine.png", "n_neighbors": "0020", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0020-0.00000-euclidean.png", "path": "Figures/800/umap-0020-0.00000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0020-0.00100-cosine.png", "path": "Figures/800/umap-0020-0.00100-cosine.png", "n_neighbors": "0020", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0020-0.00100-euclidean.png", "path": "Figures/800/umap-0020-0.00100-euclidean.png", "n_neighbors": "0020", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0020-0.01000-cosine.png", "path": "Figures/800/umap-0020-0.01000-cosine.png", "n_neighbors": "0020", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0020-0.01000-euclidean.png", "path": "Figures/800/umap-0020-0.01000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0020-0.10000-cosine.png", "path": "Figures/800/umap-0020-0.10000-cosine.png", "n_neighbors": "0020", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0020-0.10000-euclidean.png", "path": "Figures/800/umap-0020-0.10000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0020-0.25000-cosine.png", "path": "Figures/800/umap-0020-0.25000-cosine.png", "n_neighbors": "0020", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0020-0.25000-euclidean.png", "path": "Figures/800/umap-0020-0.25000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0020-0.50000-cosine.png", "path": "Figures/800/umap-0020-0.50000-cosine.png", "n_neighbors": "0020", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0020-0.50000-euclidean.png", "path": "Figures/800/umap-0020-0.50000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0020-0.99000-cosine.png", "path": "Figures/800/umap-0020-0.99000-cosine.png", "n_neighbors": "0020", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0020-0.99000-euclidean.png", "path": "Figures/800/umap-0020-0.99000-euclidean.png", "n_neighbors": "0020", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0050-0.00000-cosine.png", "path": "Figures/800/umap-0050-0.00000-cosine.png", "n_neighbors": "0050", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0050-0.00000-euclidean.png", "path": "Figures/800/umap-0050-0.00000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0050-0.00100-cosine.png", "path": "Figures/800/umap-0050-0.00100-cosine.png", "n_neighbors": "0050", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0050-0.00100-euclidean.png", "path": "Figures/800/umap-0050-0.00100-euclidean.png", "n_neighbors": "0050", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0050-0.01000-cosine.png", "path": "Figures/800/umap-0050-0.01000-cosine.png", "n_neighbors": "0050", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0050-0.01000-euclidean.png", "path": "Figures/800/umap-0050-0.01000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0050-0.10000-cosine.png", "path": "Figures/800/umap-0050-0.10000-cosine.png", "n_neighbors": "0050", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0050-0.10000-euclidean.png", "path": "Figures/800/umap-0050-0.10000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0050-0.25000-cosine.png", "path": "Figures/800/umap-0050-0.25000-cosine.png", "n_neighbors": "0050", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0050-0.25000-euclidean.png", "path": "Figures/800/umap-0050-0.25000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0050-0.50000-cosine.png", "path": "Figures/800/umap-0050-0.50000-cosine.png", "n_neighbors": "0050", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0050-0.50000-euclidean.png", "path": "Figures/800/umap-0050-0.50000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0050-0.99000-cosine.png", "path": "Figures/800/umap-0050-0.99000-cosine.png", "n_neighbors": "0050", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0050-0.99000-euclidean.png", "path": "Figures/800/umap-0050-0.99000-euclidean.png", "n_neighbors": "0050", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0100-0.00000-cosine.png", "path": "Figures/800/umap-0100-0.00000-cosine.png", "n_neighbors": "0100", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0100-0.00000-euclidean.png", "path": "Figures/800/umap-0100-0.00000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0100-0.00100-cosine.png", "path": "Figures/800/umap-0100-0.00100-cosine.png", "n_neighbors": "0100", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0100-0.00100-euclidean.png", "path": "Figures/800/umap-0100-0.00100-euclidean.png", "n_neighbors": "0100", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0100-0.01000-cosine.png", "path": "Figures/800/umap-0100-0.01000-cosine.png", "n_neighbors": "0100", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0100-0.01000-euclidean.png", "path": "Figures/800/umap-0100-0.01000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0100-0.10000-cosine.png", "path": "Figures/800/umap-0100-0.10000-cosine.png", "n_neighbors": "0100", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0100-0.10000-euclidean.png", "path": "Figures/800/umap-0100-0.10000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0100-0.25000-cosine.png", "path": "Figures/800/umap-0100-0.25000-cosine.png", "n_neighbors": "0100", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0100-0.25000-euclidean.png", "path": "Figures/800/umap-0100-0.25000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0100-0.50000-cosine.png", "path": "Figures/800/umap-0100-0.50000-cosine.png", "n_neighbors": "0100", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0100-0.50000-euclidean.png", "path": "Figures/800/umap-0100-0.50000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0100-0.99000-cosine.png", "path": "Figures/800/umap-0100-0.99000-cosine.png", "n_neighbors": "0100", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0100-0.99000-euclidean.png", "path": "Figures/800/umap-0100-0.99000-euclidean.png", "n_neighbors": "0100", "min_dist": "0.99000", "metric": "euclidean"}, {"filename": "umap-0200-0.00000-cosine.png", "path": "Figures/800/umap-0200-0.00000-cosine.png", "n_neighbors": "0200", "min_dist": "0.00000", "metric": "cosine"}, {"filename": "umap-0200-0.00000-euclidean.png", "path": "Figures/800/umap-0200-0.00000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.00000", "metric": "euclidean"}, {"filename": "umap-0200-0.00100-cosine.png", "path": "Figures/800/umap-0200-0.00100-cosine.png", "n_neighbors": "0200", "min_dist": "0.00100", "metric": "cosine"}, {"filename": "umap-0200-0.00100-euclidean.png", "path": "Figures/800/umap-0200-0.00100-euclidean.png", "n_neighbors": "0200", "min_dist": "0.00100", "metric": "euclidean"}, {"filename": "umap-0200-0.01000-cosine.png", "path": "Figures/800/umap-0200-0.01000-cosine.png", "n_neighbors": "0200", "min_dist": "0.01000", "metric": "cosine"}, {"filename": "umap-0200-0.01000-euclidean.png", "path": "Figures/800/umap-0200-0.01000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.01000", "metric": "euclidean"}, {"filename": "umap-0200-0.10000-cosine.png", "path": "Figures/800/umap-0200-0.10000-cosine.png", "n_neighbors": "0200", "min_dist": "0.10000", "metric": "cosine"}, {"filename": "umap-0200-0.10000-euclidean.png", "path": "Figures/800/umap-0200-0.10000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.10000", "metric": "euclidean"}, {"filename": "umap-0200-0.25000-cosine.png", "path": "Figures/800/umap-0200-0.25000-cosine.png", "n_neighbors": "0200", "min_dist": "0.25000", "metric": "cosine"}, {"filename": "umap-0200-0.25000-euclidean.png", "path": "Figures/800/umap-0200-0.25000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.25000", "metric": "euclidean"}, {"filename": "umap-0200-0.50000-cosine.png", "path": "Figures/800/umap-0200-0.50000-cosine.png", "n_neighbors": "0200", "min_dist": "0.50000", "metric": "cosine"}, {"filename": "umap-0200-0.50000-euclidean.png", "path": "Figures/800/umap-0200-0.50000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.50000", "metric": "euclidean"}, {"filename": "umap-0200-0.99000-cosine.png", "path": "Figures/800/umap-0200-0.99000-cosine.png", "n_neighbors": "0200", "min_dist": "0.99000", "metric": "cosine"}, {"filename": "umap-0200-0.99000-euclidean.png", "path": "Figures/800/umap-0200-0.99000-euclidean.png", "n_neighbors": "0200", "min_dist": "0.99000", "metric": "euclidean"}]};
+        let allFigures = [];
+
+        // Flatten figures
+        Object.entries(figuresBySize).forEach(([size, figures]) => {
+            allFigures.push(...figures.map(f => ({...f, size})));
+        });
+
+        // Populate filter options
+        const sizes = [...new Set(allFigures.map(f => f.size))].sort();
+        const neighbors = [...new Set(allFigures.map(f => f.n_neighbors))].sort();
+        const dists = [...new Set(allFigures.map(f => f.min_dist))].sort();
+        const metrics = [...new Set(allFigures.map(f => f.metric))].sort();
+
+        const sizeFilter = document.getElementById('sizeFilter');
+        const neighborsFilter = document.getElementById('neighborsFilter');
+        const distFilter = document.getElementById('distFilter');
+        const metricFilter = document.getElementById('metricFilter');
+
+        sizes.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = s;
+            sizeFilter.appendChild(opt);
+        });
+
+        neighbors.forEach(n => {
+            const opt = document.createElement('option');
+            opt.value = n;
+            opt.textContent = n;
+            neighborsFilter.appendChild(opt);
+        });
+
+        dists.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            distFilter.appendChild(opt);
+        });
+
+        metrics.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m;
+            metricFilter.appendChild(opt);
+        });
+
+        // Filter logic
+        function updateGallery() {
+            const sizeVal = sizeFilter.value;
+            const neighborsVal = neighborsFilter.value;
+            const distVal = distFilter.value;
+            const metricVal = metricFilter.value;
+
+            const filtered = allFigures.filter(f => {
+                if (sizeVal && f.size !== sizeVal) return false;
+                if (neighborsVal && f.n_neighbors !== neighborsVal) return false;
+                if (distVal && f.min_dist !== distVal) return false;
+                if (metricVal && f.metric !== metricVal) return false;
+                return true;
+            });
+
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+
+            if (filtered.length === 0) {
+                gallery.innerHTML = '<div class="empty">No figures match the selected filters</div>';
+            } else {
+                filtered.forEach(fig => {
+                    const card = document.createElement('div');
+                    card.className = 'figure-card';
+                    card.innerHTML = `
+                        <img src="${fig.path}" alt="UMAP" class="figure-image">
+                        <div class="figure-info">
+                            <div class="figure-params">
+                                <div><span class="param-label">n_neighbors:</span> ${fig.n_neighbors}</div>
+                                <div><span class="param-label">min_dist:</span> ${fig.min_dist}</div>
+                                <div><span class="param-label">metric:</span> ${fig.metric}</div>
+                                <div><span class="param-label">size:</span> ${fig.size}</div>
+                            </div>
+                        </div>
+                    `;
+                    gallery.appendChild(card);
+                });
+            }
+
+            document.getElementById('figureCount').textContent = `Showing ${filtered.length} of ${allFigures.length} figures`;
+        }
+
+        sizeFilter.addEventListener('change', updateGallery);
+        neighborsFilter.addEventListener('change', updateGallery);
+        distFilter.addEventListener('change', updateGallery);
+        metricFilter.addEventListener('change', updateGallery);
+
+        updateGallery();
+    </script>
+</body>
+</html>
