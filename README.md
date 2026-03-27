@@ -18,7 +18,7 @@ By visualizing how different `min_dist` values affect clustering and spreading o
 
 ```bash
 # Install dependencies
-uv pip install -r requirements.txt
+uv sync
 
 # Generate visualizations
 uv run test.py
@@ -50,3 +50,12 @@ The [interactive gallery](https://dbolser.github.io/UMAP-Parameter-Sweep/) lets 
 - Quickly explore the entire hyperparameter space
 
 See [CLAUDE.md](./CLAUDE.md) for development notes.
+
+## Future Improvements
+
+This is a first draft. Potential enhancements for making the visualization more fit-for-purpose:
+
+- **2D parameter grid**: Display plots in a grid layout where one axis represents `n_neighbors` and the other `min_dist`, making parameter relationships more intuitive
+- **Natural controls**: Replace filter dropdowns with sliders and axis selection for more direct exploration of the parameter space
+- **Side-by-side comparison**: Ability to compare specific parameter combinations directly
+- **Density analysis**: Quantitative metrics overlaid on visualizations to complement visual inspection
