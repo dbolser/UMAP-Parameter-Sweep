@@ -59,7 +59,7 @@ def generate_gallery():
 
 
 def generate_html(figures_by_size: dict) -> str:
-    """Generate HTML content for the gallery."""
+    """Generate HTML content for the gallery: an n_neighbors x min_dist matrix."""
     figures_json = json.dumps(figures_by_size)
 
     return f"""<!DOCTYPE html>
@@ -83,13 +83,12 @@ def generate_html(figures_by_size: dict) -> str:
         }}
 
         .container {{
-            max-width: 1400px;
             margin: 0 auto;
         }}
 
         header {{
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-align: center;
         }}
 
@@ -106,11 +105,12 @@ def generate_html(figures_by_size: dict) -> str:
         .controls {{
             background: white;
             border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
+            padding: 20px 25px;
+            margin: 0 auto 30px;
+            max-width: 600px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
         }}
 
@@ -126,85 +126,58 @@ def generate_html(figures_by_size: dict) -> str:
             font-size: 0.95em;
         }}
 
-        select, input {{
+        select {{
             padding: 10px;
             border: 2px solid #e0e0e0;
             border-radius: 5px;
             font-size: 1em;
-            transition: border-color 0.3s;
         }}
 
-        select:focus, input:focus {{
+        select:focus {{
             outline: none;
             border-color: #667eea;
         }}
 
-        .stats {{
-            color: white;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 0.95em;
-            opacity: 0.9;
-        }}
-
-        .gallery {{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            animation: fadeIn 0.5s ease-in;
-        }}
-
-        @keyframes fadeIn {{
-            from {{
-                opacity: 0;
-            }}
-            to {{
-                opacity: 1;
-            }}
-        }}
-
-        .figure-card {{
+        .matrix-wrap {{
+            overflow-x: auto;
             background: white;
             border-radius: 10px;
-            overflow: hidden;
+            padding: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
         }}
 
-        .figure-card:hover {{
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        table.matrix {{
+            border-collapse: collapse;
+            margin: 0 auto;
         }}
 
-        .figure-image {{
+        .matrix th {{
+            color: #333;
+            font-size: 0.9em;
+            font-weight: 600;
+            padding: 6px;
+            white-space: nowrap;
+        }}
+
+        .matrix .axis {{
+            color: #667eea;
+        }}
+
+        .matrix td {{
+            padding: 2px;
+        }}
+
+        .matrix img {{
+            display: block;
             width: 100%;
-            height: 300px;
-            object-fit: cover;
+            min-width: 120px;
+            aspect-ratio: 1;
+            object-fit: contain;
             background: #f5f5f5;
         }}
 
-        .figure-info {{
-            padding: 15px;
-            background: white;
-        }}
-
-        .figure-params {{
-            font-size: 0.9em;
-            color: #666;
-            line-height: 1.6;
-        }}
-
-        .param-label {{
-            font-weight: 600;
-            color: #333;
-        }}
-
-        .empty {{
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 60px 20px;
-            color: white;
-            font-size: 1.1em;
+        .matrix td.missing {{
+            background: #fafafa;
         }}
 
         footer {{
@@ -215,18 +188,8 @@ def generate_html(figures_by_size: dict) -> str:
             font-size: 0.9em;
         }}
 
-        @media (max-width: 768px) {{
-            header h1 {{
-                font-size: 1.8em;
-            }}
-
-            .gallery {{
-                grid-template-columns: 1fr;
-            }}
-
-            .controls {{
-                grid-template-columns: 1fr;
-            }}
+        footer a {{
+            color: white;
         }}
     </style>
 </head>
@@ -234,143 +197,69 @@ def generate_html(figures_by_size: dict) -> str:
     <div class="container">
         <header>
             <h1>📊 UMAP Parameter Exploration</h1>
-            <p>Interactive gallery of dimensionality reduction visualizations</p>
+            <p>Rows: n_neighbors &middot; Columns: min_dist</p>
         </header>
 
         <div class="controls">
             <div class="control-group">
                 <label for="sizeFilter">Dataset Size</label>
-                <select id="sizeFilter">
-                    <option value="">All Sizes</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label for="neighborsFilter">n_neighbors</label>
-                <select id="neighborsFilter">
-                    <option value="">All</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label for="distFilter">min_dist</label>
-                <select id="distFilter">
-                    <option value="">All</option>
-                </select>
+                <select id="sizeFilter"></select>
             </div>
             <div class="control-group">
                 <label for="metricFilter">metric</label>
-                <select id="metricFilter">
-                    <option value="">All</option>
-                </select>
+                <select id="metricFilter"></select>
             </div>
         </div>
 
-        <div class="stats">
-            <span id="figureCount"></span>
+        <div class="matrix-wrap">
+            <table class="matrix" id="matrix"></table>
         </div>
 
-        <div class="gallery" id="gallery"></div>
-
         <footer>
-            <p>Generated by UMAP Parameter Exploration Tool</p>
+            <p>Generated by UMAP Parameter Exploration Tool &middot; <a href="https://github.com/dbolser/UMAP-Parameter-Sweep">GitHub</a></p>
         </footer>
     </div>
 
     <script>
         const figuresBySize = {figures_json};
-        let allFigures = [];
+        const DEFAULT_SIZE = '8000';
+        const DEFAULT_METRIC = 'cosine';
 
-        // Flatten figures
-        Object.entries(figuresBySize).forEach(([size, figures]) => {{
-            allFigures.push(...figures.map(f => ({{...f, size}})));
-        }});
-
-        // Populate filter options
-        const sizes = [...new Set(allFigures.map(f => f.size))].sort();
-        const neighbors = [...new Set(allFigures.map(f => f.n_neighbors))].sort();
-        const dists = [...new Set(allFigures.map(f => f.min_dist))].sort();
-        const metrics = [...new Set(allFigures.map(f => f.metric))].sort();
+        const uniqueSorted = (values) => [...new Set(values)].sort((a, b) => parseFloat(a) - parseFloat(b) || a.localeCompare(b));
+        const allFigures = Object.entries(figuresBySize).flatMap(([size, figs]) => figs.map(f => ({{...f, size}})));
 
         const sizeFilter = document.getElementById('sizeFilter');
-        const neighborsFilter = document.getElementById('neighborsFilter');
-        const distFilter = document.getElementById('distFilter');
         const metricFilter = document.getElementById('metricFilter');
 
-        sizes.forEach(s => {{
-            const opt = document.createElement('option');
-            opt.value = s;
-            opt.textContent = s;
-            sizeFilter.appendChild(opt);
-        }});
-
-        neighbors.forEach(n => {{
-            const opt = document.createElement('option');
-            opt.value = n;
-            opt.textContent = n;
-            neighborsFilter.appendChild(opt);
-        }});
-
-        dists.forEach(d => {{
-            const opt = document.createElement('option');
-            opt.value = d;
-            opt.textContent = d;
-            distFilter.appendChild(opt);
-        }});
-
-        metrics.forEach(m => {{
-            const opt = document.createElement('option');
-            opt.value = m;
-            opt.textContent = m;
-            metricFilter.appendChild(opt);
-        }});
-
-        // Filter logic
-        function updateGallery() {{
-            const sizeVal = sizeFilter.value;
-            const neighborsVal = neighborsFilter.value;
-            const distVal = distFilter.value;
-            const metricVal = metricFilter.value;
-
-            const filtered = allFigures.filter(f => {{
-                if (sizeVal && f.size !== sizeVal) return false;
-                if (neighborsVal && f.n_neighbors !== neighborsVal) return false;
-                if (distVal && f.min_dist !== distVal) return false;
-                if (metricVal && f.metric !== metricVal) return false;
-                return true;
-            }});
-
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
-
-            if (filtered.length === 0) {{
-                gallery.innerHTML = '<div class="empty">No figures match the selected filters</div>';
-            }} else {{
-                filtered.forEach(fig => {{
-                    const card = document.createElement('div');
-                    card.className = 'figure-card';
-                    card.innerHTML = `
-                        <img src="${{fig.path}}" alt="UMAP" class="figure-image">
-                        <div class="figure-info">
-                            <div class="figure-params">
-                                <div><span class="param-label">n_neighbors:</span> ${{fig.n_neighbors}}</div>
-                                <div><span class="param-label">min_dist:</span> ${{fig.min_dist}}</div>
-                                <div><span class="param-label">metric:</span> ${{fig.metric}}</div>
-                                <div><span class="param-label">size:</span> ${{fig.size}}</div>
-                            </div>
-                        </div>
-                    `;
-                    gallery.appendChild(card);
-                }});
-            }}
-
-            document.getElementById('figureCount').textContent = `Showing ${{filtered.length}} of ${{allFigures.length}} figures`;
+        function fillSelect(select, values, preferred) {{
+            values.forEach(v => select.add(new Option(v, v)));
+            if (values.includes(preferred)) select.value = preferred;
         }}
 
-        sizeFilter.addEventListener('change', updateGallery);
-        neighborsFilter.addEventListener('change', updateGallery);
-        distFilter.addEventListener('change', updateGallery);
-        metricFilter.addEventListener('change', updateGallery);
+        fillSelect(sizeFilter, uniqueSorted(allFigures.map(f => f.size)), DEFAULT_SIZE);
+        fillSelect(metricFilter, uniqueSorted(allFigures.map(f => f.metric)), DEFAULT_METRIC);
 
-        updateGallery();
+        function updateMatrix() {{
+            const figs = allFigures.filter(f => f.size === sizeFilter.value && f.metric === metricFilter.value);
+            const rows = uniqueSorted(figs.map(f => f.n_neighbors));
+            const cols = uniqueSorted(figs.map(f => f.min_dist));
+            const lookup = new Map(figs.map(f => [`${{f.n_neighbors}}|${{f.min_dist}}`, f]));
+
+            const header = `<tr><th class="axis">n_neighbors \\\\ min_dist</th>${{cols.map(c => `<th>${{parseFloat(c)}}</th>`).join('')}}</tr>`;
+            const body = rows.map(r => `<tr><th>${{parseInt(r, 10)}}</th>${{cols.map(c => {{
+                const f = lookup.get(`${{r}}|${{c}}`);
+                return f
+                    ? `<td><a href="${{f.path}}" target="_blank"><img src="${{f.path}}" alt="n_neighbors=${{parseInt(r, 10)}}, min_dist=${{parseFloat(c)}}" title="n_neighbors=${{parseInt(r, 10)}}, min_dist=${{parseFloat(c)}}" loading="lazy"></a></td>`
+                    : '<td class="missing"></td>';
+            }}).join('')}}</tr>`).join('');
+
+            document.getElementById('matrix').innerHTML = header + body;
+        }}
+
+        sizeFilter.addEventListener('change', updateMatrix);
+        metricFilter.addEventListener('change', updateMatrix);
+
+        updateMatrix();
     </script>
 </body>
 </html>
