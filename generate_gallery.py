@@ -25,7 +25,7 @@ def extract_params(filename: str) -> dict:
 def generate_gallery():
     """Generate HTML gallery from figures directory."""
     if not FIGURES_DIR.exists():
-        print(f"Error: {FIGURES_DIR} does not exist. Run test.py first.")
+        print(f"Error: {FIGURES_DIR} does not exist. Run sweep.py first.")
         return
 
     # Collect all figures organized by dataset size
@@ -49,7 +49,7 @@ def generate_gallery():
                 )
 
     if not figures_by_size:
-        print("No UMAP figures found. Run test.py first.")
+        print("No UMAP figures found. Run sweep.py first.")
         return
 
     html = generate_html(figures_by_size)

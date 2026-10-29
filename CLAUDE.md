@@ -10,7 +10,7 @@ See [README.md](./README.md) for full context and motivation.
 
 ## Key Files
 
-- **test.py**: Main script. Generates UMAP visualizations with parameter sweep, automatically generates HTML gallery afterward
+- **sweep.py**: Main script. Generates UMAP visualizations with parameter sweep, automatically generates HTML gallery afterward
 - **generate_gallery.py**: Builds interactive HTML dashboard from Figures directory
 - **utils.py**: Timer decorator for execution logging
 - **index.html**: GitHub Pages dashboard (auto-generated, deployed live)
@@ -18,8 +18,9 @@ See [README.md](./README.md) for full context and motivation.
 ## Commands
 
 ```bash
-uv run test.py          # Generate all figures + gallery
+uv run sweep.py          # Generate all figures + gallery
 uv run generate_gallery.py  # Regenerate gallery from existing figures
+uv run pytest           # Run tests
 ```
 
 ## Architecture Notes

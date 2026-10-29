@@ -21,14 +21,14 @@ By visualizing how different `min_dist` values affect clustering and spreading o
 uv sync
 
 # Generate visualizations
-uv run test.py
+uv run sweep.py
 
 # This creates an interactive HTML gallery at index.html
 ```
 
 ## How It Works
 
-- `test.py`: Generates UMAP visualizations across a parameter grid (n_neighbors, min_dist, metric)
+- `sweep.py`: Generates UMAP visualizations across a parameter grid (n_neighbors, min_dist, metric)
 - `generate_gallery.py`: Creates an interactive HTML dashboard for exploring results
 - `Figures/`: Output directory with PNG visualizations organized by dataset size
 - `index.html`: Interactive gallery with filtering by parameter values
@@ -37,17 +37,18 @@ uv run test.py
 
 - **Parameters tested**:
   - `n_neighbors`: 2, 5, 10, 20, 50, 100, 200
-  - `min_dist`: 0, 0.0001 (and 0.001, 0.01, 0.1, 0.25, 0.5, 0.99 for earlier dataset sizes)
+  - `min_dist`: 0, 0.0001, 0.001, 0.01, 0.1, 0.25, 0.5, 0.99
   - `metric`: euclidean, cosine
 
-- **Dataset sizes**: 400, 800, 8000 samples (4-dimensional random data)
+- **Dataset sizes**: 400, 800, 8000 samples of 4D uniform random data, plotted as RGBA (smaller sets are prefixes of larger ones)
+- **Orientation**: `init="pca"` plus a Procrustes alignment, so red runs left-to-right and green bottom-to-top in every plot
 
 ## Gallery Features
 
 The [interactive gallery](https://dbolser.github.io/UMAP-Parameter-Sweep/) lets you:
-- Filter visualizations by dataset size, n_neighbors, min_dist, and metric
+- View an n_neighbors (rows) × min_dist (columns) matrix for any dataset size and metric
 - Observe how each parameter affects point density and structure
-- Quickly explore the entire hyperparameter space
+- Click any plot to open it full size
 
 See [CLAUDE.md](./CLAUDE.md) for development notes.
 
@@ -55,7 +56,6 @@ See [CLAUDE.md](./CLAUDE.md) for development notes.
 
 This is a first draft. Potential enhancements for making the visualization more fit-for-purpose:
 
-- **2D parameter grid**: Display plots in a grid layout where one axis represents `n_neighbors` and the other `min_dist`, making parameter relationships more intuitive
 - **Natural controls**: Replace filter dropdowns with sliders and axis selection for more direct exploration of the parameter space
 - **Side-by-side comparison**: Ability to compare specific parameter combinations directly
 - **Density analysis**: Quantitative metrics overlaid on visualizations to complement visual inspection
