@@ -52,10 +52,7 @@ The [interactive gallery](https://dbolser.github.io/UMAP-Parameter-Sweep/) lets 
 
 See [CLAUDE.md](./CLAUDE.md) for development notes.
 
-## Future Improvements
+## Further Reading and Next Steps
 
-This is a first draft. Potential enhancements for making the visualization more fit-for-purpose:
-
-- **Natural controls**: Replace filter dropdowns with sliders and axis selection for more direct exploration of the parameter space
-- **Side-by-side comparison**: Ability to compare specific parameter combinations directly
-- **Density analysis**: Quantitative metrics overlaid on visualizations to complement visual inspection
+- [LITERATURE.md](./LITERATURE.md): short report on the literature on UMAP parameters, density and structure
+- [TODO.md](./TODO.md): planned experiments (planted structure, scoring, density sweeps) and gallery improvements
